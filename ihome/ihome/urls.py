@@ -15,10 +15,11 @@ Including another URLconf
 """
 from django.urls import path, include
 
-
 urlpatterns = [
     # 验证模块路由
     path('api/v1.0/', include('verifications.urls')),
     path('api/v1.0/', include('users.urls')),
+    path('api/v1.0/', include('homes.urls')),
+    path('api/v1.0/', include('areas.urls')),
 
 ]

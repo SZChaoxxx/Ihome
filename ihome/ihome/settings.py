@@ -21,7 +21,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # 将apps设置为导包路径
-sys.path.insert(0, os.path.join(BASE_DIR,'ihome/apps'))
+sys.path.insert(
+    0,
+    os.path.join(BASE_DIR,'ihome/apps'
+                 ))
 print(sys.path)
 
 # 指定本项目使用我们自定义的模型类: '应用名称.User'
@@ -55,6 +58,7 @@ INSTALLED_APPS = [
     'users',
     'verifications',
     'corsheaders',  # 安装cors应用，解决跨域问题
+
 
 ]
 
