@@ -1,7 +1,8 @@
 ## 运行项目注意事项
 
-静态服务器：http://linfaner.top:8080/
-动态服务器：http://linfaner.top:8000/
+静态服务器：http://www.linfaner.top:8080/
+
+动态服务器：http://www.linfaner.top:8000/
 
 #### 1、redis的ip和端口需要配置，并且确定启动redis
 
