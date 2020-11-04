@@ -2,6 +2,7 @@ from django.views import View
 from verifications.libs.captcha.captcha import captcha
 from django_redis import get_redis_connection
 from django.http import HttpResponse,JsonResponse
+import json, random
 
 
 class ImageCodeView(View):
@@ -42,9 +43,10 @@ class SMSCodeView(View):
         :return JSON
         """
         # 1. 接收参数
-        mobile = request.POST.get('mobile')
-        id = request.POST.get('id')
-        image_code_client = request.POST.get('text')
+        data = json.loads(request.body.decode())
+        mobile = data.get('mobile')
+        id = data.get('id')
+        image_code_client = data.get('text')
         # 2.校验参数
         if not all([image_code_client, id]):
             return JsonResponse({
