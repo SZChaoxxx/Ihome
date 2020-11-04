@@ -53,8 +53,8 @@ class SMSCodeView(View):
         # 2.校验参数
         if not all([image_code_client, id]):
             return JsonResponse({
-                'code': 400,
-                'errmsg': '缺少必要参数'
+                'errno': "4103",
+                'errmsg': '参数错误'
             },status=400)
         # 3.创建连接到redis的对象
         redis_conn = get_redis_connection('verify_code')
@@ -63,7 +63,7 @@ class SMSCodeView(View):
         # 判断该数据是否存在，如果存在意味着用户发送短信间隔不超过60s，直接返回
         if send_flag:
             return JsonResponse({
-                'code': 400,
+                'errno': "4201",
                 'errmsg': '发送短信过于频繁'
             },status=400)
 
@@ -72,7 +72,7 @@ class SMSCodeView(View):
         if image_code_server is None:
             # 图形验证码过期或者不存在
             return JsonResponse({
-                'code': 400,
+                'errno': "4004",
                 'errmsg': '图形验证码失效'
             },status=400)
 
@@ -88,7 +88,7 @@ class SMSCodeView(View):
         # 转小写后比较
         if image_code_client.lower() != image_code_server.lower():
             return JsonResponse({
-                'code': 400,
+                'errno': "4004",
                 'errmsg':'输入图形验证码有误'
             },status=400)
 
@@ -110,6 +110,6 @@ class SMSCodeView(View):
 
         # 10. 响应结果
         return JsonResponse({
-            'code': 0,
+            'errno': "0",
             'errmsg': '发送成功'
         })

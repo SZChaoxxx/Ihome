@@ -20,6 +20,6 @@ urlpatterns = [
     path('api/v1.0/', include('verifications.urls')),
     path('api/v1.0/', include('users.urls')),
     path('api/v1.0/', include('homes.urls')),
-    path('api/v1.0/', include('areas.urls')),
+    path('api/v1.0/', include('order.urls')),
 
 ]

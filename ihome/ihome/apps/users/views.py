@@ -20,23 +20,23 @@ class RegisterView(View):
         # 2.1、必要性校验
         if not all([mobile,phonecode,password]):
             return JsonResponse({
-                'code':4103,
+                'errno':"4103",
                 'errmsg':'缺少必要参数'
             })
         # 2,2,约束性校验
         if not re.match(r'^1[3-9]\d{9}$',mobile):
             return JsonResponse({
-                'code':4103,
+                'errno':"4103",
                 'errmsg':'手机号格式有误'
             })
         if not re.match(r'^\d{6}$', phonecode):
             return JsonResponse({
-                'code': 4103,
+                'errno': "4103",
                 'errmsg': '短信验证码格式有误'
             })
         if not re.match(r'^[a-zA-Z0-9_-]{8,20}$',password):
             return JsonResponse({
-                'code':4106,
+                'errno':"4106",
                 'errmsg':'密码格式有误',
 
             })
@@ -48,7 +48,7 @@ class RegisterView(View):
         except Exception as e:
             print(e)
             return JsonResponse({
-                'code':4103,
+                'errno':"4103",
                 'errmsg':'数据库写入失败'
             })
         # TODO: 状态保持 —— 使用session机制，把用户数据写入redis
@@ -56,8 +56,8 @@ class RegisterView(View):
 
         # 4,构建响应
         response = JsonResponse({
-            'code':0,
-            'errmsg':'ok'
+            'errno':"0",
+            'errmsg':'注册成功'
         })
         return response
 
@@ -73,18 +73,18 @@ class LoginView(View):
         # 2.1、必要性校验
         if not all([mobile, password]):
             return JsonResponse({
-                'code': 4103,
+                'errno': "4103",
                 'errmsg': '缺少参数'
             })
         # 2.2 约束性校验
         if not re.match(r'^1[3-9]\d{9}$',mobile):
             return JsonResponse({
-                'code':4103,
+                'errno':"4103",
                 'errmsg':'手机号格式有误'
             })
         if not re.match(r'^[a-zA-Z0-9]{8,20}$', password):
             return JsonResponse({
-                'code': 4103,
+                'errno': "4103",
                 'errmsg': '密码格式有误',
             })
         # ３,业务数据处理
@@ -94,14 +94,14 @@ class LoginView(View):
         # 判断是否为空,如果为空,返回
         if not user:
             return JsonResponse({
-                'code': 4103,
+                'errno': "4103",
                 'errmsg': '手机号或者密码错误'
             })
         #状态保持
         login(request, user)
         # 4、构建响应
         response = JsonResponse({
-            'code': 0,
+            'errno': "0",
             'errmsg': 'ok'
         })
         response.set_cookie('username', user.username, max_age=3600*24*14)
@@ -114,7 +114,7 @@ class LoginView(View):
         """
         # １,删除该用户的session登陆数据，清除该用户的登陆状态
         logout(request) # 通过request对象获取用户信息，然后在去清除session数据
-        response = JsonResponse({'code': 0, 'errmsg': '已登出'})
+        response = JsonResponse({'errno': 0, 'errmsg': '已登出'})
         response.delete_cookie('username')
         return response
 
@@ -131,7 +131,8 @@ class LoginView(View):
                 'errno':0,
                 'errmsg':'已登陆',
                 'data':{
-                    'name':'user'#用户名
+                    'user_id': user.id,
+                    'name':user.name  #用户名
                 }
 
             })
