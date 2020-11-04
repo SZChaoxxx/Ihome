@@ -132,7 +132,7 @@ class LoginView(View):
                 'errmsg':'已登陆',
                 'data':{
                     'user_id': user.id,
-                    'name':user.name  #用户名
+                    'name':user.username  #用户名
                 }
 
             })
