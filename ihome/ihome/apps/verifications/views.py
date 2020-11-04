@@ -2,8 +2,11 @@ from django.views import View
 from verifications.libs.captcha.captcha import captcha
 from django_redis import get_redis_connection
 from django.http import HttpResponse,JsonResponse
-import json, random
-
+from verifications.libs.captcha.captcha import captcha
+from verifications.libs.yuntongxun.ccp_sms import CCP
+from celery_tasks.sms.tasks import ccp_send_sms_code  # 使用celery异步发送短信
+import json, random, logging
+logger = logging.getLogger('django')
 
 class ImageCodeView(View):
     """
