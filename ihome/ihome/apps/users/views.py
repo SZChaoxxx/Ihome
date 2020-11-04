@@ -1,5 +1,5 @@
 from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.models import User
+from users.models import User
 from django.shortcuts import render
 from django.http import JsonResponse
 # Create your views here.
@@ -8,7 +8,7 @@ import json,re
 
 
 # 用户注册
-class UsersView(View):
+class RegisterView(View):
     def post(self,request):
         # １,提取参数
         data = json.loads(request.body.decode())
@@ -16,8 +16,6 @@ class UsersView(View):
         mobile = data.get('mobile')#手机号
         phonecode = data.get('phonecode')#短信验证码
         password = data.get('password')#密码
-        password2 = data.get('password2')
-        username =data.get('username')#用户名
         # 2、校验参数
         # 2.1、必要性校验
         if not all([mobile,phonecode,password]):
@@ -31,7 +29,7 @@ class UsersView(View):
                 'code':4103,
                 'errmsg':'手机号格式有误'
             })
-        if not re.match(r'^d{6}$', phonecode):
+        if not re.match(r'^\d{6}$', phonecode):
             return JsonResponse({
                 'code': 4103,
                 'errmsg': '短信验证码格式有误'
@@ -40,24 +38,15 @@ class UsersView(View):
             return JsonResponse({
                 'code':4106,
                 'errmsg':'密码格式有误',
-            })
-        # 两次密码是否一致
-        if password != password2:
-            return  JsonResponse({
-                'code':4106,
-                'errmsg':'两次密码不一致'
-            })
-        if not re.match(r'^[a-zA-Z0-9_-]{5,20}$',username):
-            return JsonResponse({
-                'code':4103,
-                'errmsg':'用户名格式错误'
+
             })
         # 3、业务数据处理 —— 新建User模型类对象保存数据库,注册的核心逻辑 - 保存到数据库(mobile,phonecode,password)
         try:
-            user = User.objects.create_user(mobile=mobile,
-                                            phonecode=phonecode,
-                                            password = password)
+            user = User.objects.create_user(username=mobile,
+                                            mobile=mobile,
+                                            password=password)
         except Exception as e:
+            print(e)
             return JsonResponse({
                 'code':4103,
                 'errmsg':'数据库写入失败'
@@ -70,12 +59,6 @@ class UsersView(View):
             'code':0,
             'errmsg':'ok'
         })
-        # TODO: 设置cookie，来记录用户名
-        response.set_cookie(
-            'username',
-            username,
-            max_age=3600 * 24 * 14
-        )
         return response
 
 # 用户登陆

@@ -15,12 +15,18 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+# AUTHENTICATION_BACKENDS = ['users.utils.']
+
+
+
 # 将apps设置为导包路径
 sys.path.insert(0, os.path.join(BASE_DIR,'ihome/apps'))
 print(sys.path)
 
 # 指定本项目使用我们自定义的模型类: '应用名称.User'
 AUTH_USER_MODEL = 'users.User'
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
