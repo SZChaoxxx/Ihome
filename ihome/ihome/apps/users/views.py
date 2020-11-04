@@ -76,7 +76,7 @@ class LoginView(View):
                 'code': 4103,
                 'errmsg': '缺少参数'
             })
-        # 2,2约束性校验
+        # 2.2 约束性校验
         if not re.match(r'^1[3-9]\d{9}$',mobile):
             return JsonResponse({
                 'code':4103,
@@ -89,7 +89,7 @@ class LoginView(View):
             })
         # ３,业务数据处理
         # 3.验证是否能够登录
-        user = authenticate(request,mobile=mobile, password=password)
+        user = authenticate(request,username=mobile, password=password)
 
         # 判断是否为空,如果为空,返回
         if not user:
@@ -104,6 +104,8 @@ class LoginView(View):
             'code': 0,
             'errmsg': 'ok'
         })
+        response.set_cookie('username', user.username, max_age=3600*24*14)
+        return response
 
 # 退出登陆
 class LogoutView(View):
