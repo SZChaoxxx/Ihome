@@ -107,20 +107,24 @@ class LoginView(View):
         response.set_cookie('username', user.username, max_age=3600*24*14)
         return response
 
-# 退出登陆
-class LogoutView(View):
 
     def delete(self, request):
+        """
+         退出登陆
+        """
         # １,删除该用户的session登陆数据，清除该用户的登陆状态
         logout(request) # 通过request对象获取用户信息，然后在去清除session数据
         response = JsonResponse({'code': 0, 'errmsg': '已登出'})
         response.delete_cookie('username')
         return response
 
-# 判断是否登陆
-class UserInforView(View):
 
     def get(self,request):
+        """
+        判断是否登陆
+        :param request:
+        :return:
+        """
         user = request.user
         if user:
             return JsonResponse({
@@ -137,4 +141,9 @@ class UserInforView(View):
                 "errno": "4101",
                 "errmsg": "未登录"
             })
+
+
+
+
+
 
