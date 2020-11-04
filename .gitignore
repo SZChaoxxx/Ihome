@@ -354,6 +354,8 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 
+host.js
+
 # Editor-based Rest Client
 .idea/httpRequests
 
