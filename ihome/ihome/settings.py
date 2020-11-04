@@ -9,12 +9,18 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-
+import sys, os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# 将apps设置为导包路径
+sys.path.insert(0, os.path.join(BASE_DIR,'ihome/apps'))
+print(sys.path)
+
+# 指定本项目使用我们自定义的模型类: '应用名称.User'
+AUTH_USER_MODEL = 'users.User'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
@@ -25,7 +31,7 @@ SECRET_KEY = '5y@#$+ex%14hh0th@8=hhteo%)jklt_zp^9u0_3wlx(1nlkp@0'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -37,6 +43,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # 自定义子应用
+    'homes',
+    'order',
+    'users',
+    'verifications',
+    'corsheaders',  # 安装cors应用，解决跨域问题
+
 ]
 
 MIDDLEWARE = [
@@ -75,11 +88,53 @@ WSGI_APPLICATION = 'ihome.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'HOST': '124.70.44.108',
+        'PORT': 3306,
+        'USER': 'ihome',
+        'PASSWORD': '123456',
+        'NAME': 'ihome',
     }
 }
 
+
+CACHES = {
+    # 默认存储信息: 存到 0 号库
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://124.70.44.108:6379/0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+    # session 信息: 存到 1 号库
+    "session": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://124.70.44.108:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+    # 图片验证码信息： 存到 2 号库
+    "verify_code": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://124.70.44.108:6379/2",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+# CORS跨域请求白名单设置
+CORS_ORIGIN_WHITELIST = (
+    'http://127.0.0.1:8080',
+    'http://localhost:8080',
+    'http://www.linfaner.top:8080',
+)
+CORS_ALLOW_CREDENTIALS = True # 允许携带cookie
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "session"
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
