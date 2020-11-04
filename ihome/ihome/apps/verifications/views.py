@@ -35,17 +35,18 @@ class SMSCodeView(View):
     """
     短信验证码
     """
-    def get(self, request, mobile):
+    def post(self, request):
         """
         :param request: 请求对象
         :param mobile: 手机号
         :return JSON
         """
         # 1. 接收参数
-        image_code_client = request.GET.get('image_code')
-        uuid = request.GET.get('image_code_id')
+        mobile = request.POST.get('mobile')
+        id = request.POST.get('id')
+        image_code_client = request.POST.get('text')
         # 2.校验参数
-        if not all([image_code_client, uuid]):
+        if not all([image_code_client, id]):
             return JsonResponse({
                 'code': 400,
                 'errmsg': '缺少必要参数'
@@ -62,7 +63,7 @@ class SMSCodeView(View):
             },status=400)
 
         # 4. 提取图形验证码
-        image_code_server = redis_conn.get('img_%s'%uuid)
+        image_code_server = redis_conn.get('img_%s' % id)
         if image_code_server is None:
             # 图形验证码过期或者不存在
             return JsonResponse({
@@ -72,7 +73,7 @@ class SMSCodeView(View):
 
         # 5. 删除图形验证码，避免恶意测试图形验证码
         try:
-            redis_conn.delete('ims_%s' %uuid)
+            redis_conn.delete('ims_%s' % id)
         except Exception as e:
             logger.error(e)
 
@@ -105,5 +106,5 @@ class SMSCodeView(View):
         # 10. 响应结果
         return JsonResponse({
             'code': 0,
-            'errmsg': '发送短信成功'
+            'errmsg': '发送成功'
         })

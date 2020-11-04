@@ -13,12 +13,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.urls import path, include, register_converter
-from ihome.utils import converters
+from django.urls import path, include
 
-# 1. 总路由中添加路由转换器
-register_converter(converters.UsernameConverter, 'username')
-register_converter(converters.MobileConverter, 'mobile')
 
 urlpatterns = [
     # 验证模块路由
