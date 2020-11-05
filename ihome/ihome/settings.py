@@ -227,3 +227,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# 调用7牛云,需要填写你的 Access Key 和 Secret Key
+ACCESS_KEY = 'BnfVoZAdZUyn4PhhwV6BOSb00fQi9G7QIXkGvdcX'
+SECRET_KEY = 'ox0JfWx5Yu6zX1lB7hOvRaW1gFEAhPXgKn_TJFzB'
+# 要上传的空间
+BUCKET_NAME = 'ihomesz40'
