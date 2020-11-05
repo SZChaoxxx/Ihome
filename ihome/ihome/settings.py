@@ -135,7 +135,16 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
-    }
+    },
+    # 订单信息： 存到 5 号库
+    "order_information": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://124.70.44.108:6379/5",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+
 }
 
 # CORS跨域请求白名单设置
