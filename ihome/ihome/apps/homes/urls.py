@@ -19,6 +19,8 @@ from . import views
 urlpatterns = [
     # 区域数据
     path('areas', views.AreaView.as_view()),
+    path('houses/<int:house_id>/images', views.UploadHouseImage.as_view()),
     path('houses', views.PublishHouse.as_view()),
+
 
 ]

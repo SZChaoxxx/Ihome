@@ -2,8 +2,10 @@ from django.views import View
 from django.db import DatabaseError
 from django.core.cache import cache
 from django.http import HttpResponse, JsonResponse
+from django.conf import settings
 import json, re
 from .models import House, Area, Facility
+from qiniu import Auth, put_data, etag
 
 
 class AreaView(View):
@@ -196,3 +198,39 @@ class PublishHouse(View):
                 "house_id": house.id
             }
         })
+
+
+class UploadHouseImage(View):
+    def post(self, request, house_id):
+        file_obj = request.FILES.get('house_image')
+        if not file_obj:
+            return JsonResponse({
+                "errno": "4002",
+                "errmsg": "获取图片失败"
+            })
+        # 构建鉴权对象
+        q = Auth(settings.ACCESS_KEY, settings.SECRET_KEY)
+        key = None
+        # 生成上传 Token，可以指定过期时间等
+        token = q.upload_token(settings.BUCKET_NAME, key, 3600)
+        print(type(file_obj))
+        ret, info = put_data(token, key, file_obj)
+        # 房屋图片传入数据库
+        try:
+            house = House.objects.get(id=house_id)
+            house.index_image_url = ret['key']
+            house.save()
+        except Exception as e:
+            return JsonResponse({
+                "errno": "4001",
+                "errmsg": "数据库查询错误"
+            })
+        return JsonResponse({
+            "data":
+                {
+                    "url": "http://qj9kppiiy.hn-bkt.clouddn.com/" + ret['key'],
+                },
+            "errno": "0",
+            "errmsg": "图片上传成功"
+        })
+
