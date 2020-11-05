@@ -56,7 +56,7 @@ class RegisterView(View):
                 'errno':"4103",
                 'errmsg':'数据库写入失败'
             })
-        # TODO: 状态保持 —— 使用session机制，把用户数据写入redis
+        # 状态保持 —— 使用session机制，把用户数据写入redis
         login(request,user,backend='django.contrib.auth.backends.ModelBackend')
 
         # 4,构建响应
@@ -149,7 +149,7 @@ class LoginView(View):
             })
 
 
-#个人中心
+# 个人中心
 class UsernameCountView(LoginRequiredJsonMixin,View):
     def get(self,request):
         user = request.user
@@ -169,7 +169,7 @@ class UsernameCountView(LoginRequiredJsonMixin,View):
         })
 
 
-#修改个人头像
+# 修改个人头像
 class UpdateAvatar(LoginRequiredJsonMixin,View):
     def post(self,request):
         user = request.user
@@ -179,7 +179,6 @@ class UpdateAvatar(LoginRequiredJsonMixin,View):
                 "errno": "4002",
                 "errmsg": "无数据"
             })
-        # TODO:调用7牛云
         # 需要填写你的 Access Key 和 Secret Key
         # access_key = 'BnfVoZAdZUyn4PhhwV6BOSb00fQi9G7QIXkGvdcX'
         # secret_key = 'ox0JfWx5Yu6zX1lB7hOvRaW1gFEAhPXgKn_TJFzB'
@@ -203,27 +202,27 @@ class UpdateAvatar(LoginRequiredJsonMixin,View):
                 "errmsg": "数据库查询错误"
             })
         return JsonResponse({
-        "data": {
-            "avatar_url": "http://qj9kppiiy.hn-bkt.clouddn.com/" + ret['key']
-        },
-        "errno": "0",
-        "errmsg": "头像上传成功"
-})
+            "data": {
+                "avatar_url": "http://qj9kppiiy.hn-bkt.clouddn.com/" + ret['key']
+            },
+            "errno": "0",
+            "errmsg": "头像上传成功"
+        })
 
 
-#修改用户名
+# 修改用户名
 class UpdateName(LoginRequiredJsonMixin,View):
     def put(self,request):
         user = request.user
         data = json.loads(request.body.decode())
         username = data.get('name')
-        #必要性校验
+        # 必要性校验
         if not username:
             return JsonResponse({
                     "errno": "4002",
                     "errmsg": "无数据"
             })
-        #校验名字是否重复
+        # 校验名字是否重复
         if username == user.username:
             return JsonResponse({
                 "errno": "4003",
@@ -243,7 +242,7 @@ class UpdateName(LoginRequiredJsonMixin,View):
             })
 
 
-#实名认证
+# 实名认证
 class RealName(LoginRequiredJsonMixin,View):
     def post(self,request):
         user = request.user
@@ -280,3 +279,22 @@ class RealName(LoginRequiredJsonMixin,View):
                 "errno": "0",
                 "errmsg": "认证信息保存成功"
             })
+
+    def get(self, request):
+        # 1. 提取参数
+        user = request.user
+        # 2. 业务逻辑处理
+        if not all([user.real_name, user.id_card]):
+            return JsonResponse({
+                "errno": "0",
+                "errmsg": "用户未实名认证"
+            })
+
+        return JsonResponse({
+            "errno": "0",
+            "errmsg": "ok",
+            "data": {
+                "real_name": user.real_name,
+                "id_card": user.id_card,
+            }
+        })

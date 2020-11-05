@@ -21,6 +21,4 @@ urlpatterns = [
     path('areas', views.AreaView.as_view()),
     path('houses', views.PublishHouse.as_view()),
 
-
-
 ]
