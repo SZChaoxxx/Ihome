@@ -4,6 +4,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.conf import settings
 from ihome.utils.views import LoginRequiredJsonMixin
 from users.models import User
+from homes.models import House, Area
 from django.shortcuts import render
 from django.http import JsonResponse
 # Create your views here.
@@ -297,4 +298,34 @@ class RealName(LoginRequiredJsonMixin,View):
                 "real_name": user.real_name,
                 "id_card": user.id_card,
             }
+        })
+
+
+class MyHousesView(LoginRequiredJsonMixin,View):
+    """
+    返回我发布的房源列表
+    """
+    def get(self, request):
+        user = request.user
+        house_queryset = House.objects.filter(user_id=user.id)
+        house_list = []
+        for house in house_queryset:
+            house_list.append({
+                "address": house.address,
+                "area_name": Area.objects.get(id=house.area_id).name,
+                "ctime": house.create_time,
+                "house_id": house.id,
+                "img_url": "http://qj9kppiiy.hn-bkt.clouddn.com/%s" % house.index_image_url,
+                "order_count": house.order_count,
+                "price": house.price,
+                "room_count": house.room_count,
+                "title": house.title,
+                "user_avatar": "http://qj9kppiiy.hn-bkt.clouddn.com/%s" % user.avatar,
+            })
+        return JsonResponse({
+            "data": {
+                "houses": house_list,
+            },
+            "errno": "0",
+            "errmsg": "ok",
         })
