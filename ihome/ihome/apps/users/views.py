@@ -316,7 +316,7 @@ class MyHousesView(LoginRequiredJsonMixin,View):
             house_list.append({
                 "address": house.address,
                 "area_name": Area.objects.get(id=house.area_id).name,
-                "ctime": house.create_time,
+                "ctime": house.create_time.strftime("%Y-%m-%d"),
                 "house_id": house.id,
                 "img_url": "http://qj9kppiiy.hn-bkt.clouddn.com/%s" % house.index_image_url,
                 "order_count": house.order_count,

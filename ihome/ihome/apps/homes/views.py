@@ -85,7 +85,8 @@ class HouseHandleView(View):
         min_days = data.get('min_days')
         max_days = data.get('max_days')
         facility = data.get('facility')
-
+        price = str(int(price) * 100)
+        deposit = str(int(deposit) * 100)
         # 校验参数
         # 必要性校验
         if not all(
@@ -197,6 +198,7 @@ class HouseHandleView(View):
                 "errno": "4500",
                 "errmsg": "内部错误"
             })
+
         return JsonResponse({
             "errno": "0",
             "errmsg": "发布成功",
@@ -277,7 +279,7 @@ class HouseHandleView(View):
             data_list.append({
                 "address": datum.address,
                 "area_name": Area.objects.get(id=datum.area_id).name,
-                "ctime": datum.create_time,
+                "ctime": datum.create_time.strftime("%Y-%m-%d"),
                 "house_id": datum.id,
                 "img_url": "http://qj9kppiiy.hn-bkt.clouddn.com/%s" % datum.index_image_url,
                 "order_count": datum.order_count,
@@ -315,7 +317,7 @@ class UploadHouseImage(View):
         # 房屋图片传入数据库
         try:
             house = House.objects.get(id=house_id)
-            if house.index_image_url is None or house.facility.all() == "":
+            if house.index_image_url is None or house.index_image_url == "":
                 house.index_image_url = ret['key']
             houseImage = HouseImage(house_id=house.id, url=ret['key'])
             houseImage.save()
