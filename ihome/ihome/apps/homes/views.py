@@ -7,6 +7,7 @@ from django.http import HttpResponse, JsonResponse
 from django.conf import settings
 import json, re
 from random import sample
+from order.models import Order
 from .models import House, Area, Facility, HouseImage
 from users.models import User
 from qiniu import Auth, put_data, etag
@@ -381,12 +382,19 @@ class HouseDetailView(View):
         house_image_list = []
         for item in HouseImage.objects.filter(house_id=house_id):
             house_image_list.append("http://qj9kppiiy.hn-bkt.clouddn.com/%s" % item.url)
+        comment_list = []
+        for item in Order.objects.filter(house_id=house_id):
+            comment_list.append({
+                "comment": item.comment,
+                "ctime": item.create_time.strftime("%Y-%m-%d"),
+                "user_name": User.objects.get(id=item.user_id).username,
+            })
         data = {
                 "acreage": house.acreage,
                 "address": house.address,
                 "beds": house.beds,
                 "capacity": house.capacity,
-                "comments": {},  # TODO
+                "comments": comment_list,
                 "deposit": house.deposit,
                 "facilities": facility_list,
                 "hid": house.id,
