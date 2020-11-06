@@ -21,6 +21,7 @@ urlpatterns = [
     path('areas', views.AreaView.as_view()),
     path('houses/<int:house_id>/images', views.UploadHouseImage.as_view()),
     path('houses', views.PublishHouse.as_view()),
+    path('houses/index', views.HomePageRecommentView.as_view()),
 
 
 ]

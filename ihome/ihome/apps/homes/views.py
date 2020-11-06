@@ -4,6 +4,7 @@ from django.core.cache import cache
 from django.http import HttpResponse, JsonResponse
 from django.conf import settings
 import json, re
+from random import sample
 from .models import House, Area, Facility
 from qiniu import Auth, put_data, etag
 
@@ -234,3 +235,26 @@ class UploadHouseImage(View):
             "errmsg": "图片上传成功"
         })
 
+class HomePageRecommentView(View):
+    def get(self, request):
+        try:
+            house_querySet = House.objects.all()
+        except DatabaseError:
+            return JsonResponse({
+                "errno": "4001",
+                "errmsg": "数据库查询错误"
+            })
+        house_list = []
+        for house in house_querySet:
+             house_list.append({
+                 "house_id": house.id,
+                 "img_url": "http://qj9kppiiy.hn-bkt.clouddn.com/%s" % house.index_image_url,
+                 "title": house.title
+             })
+        if len(house_list) >= 5:
+            house_list = sample(house_list, 5)
+        return JsonResponse({
+            "data": house_list,
+            "errmsg": "ok",
+            "errno": "0"
+        })
