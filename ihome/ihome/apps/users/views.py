@@ -72,7 +72,7 @@ class RegisterView(View):
 # 用户登陆
 class LoginView(View):
 
-    def post(self, request):
+    def post(self, request, encoding='utf-8'):
         # 1、提取参数
         data = json.loads(request.body.decode())
         mobile = data.get('mobile')

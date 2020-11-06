@@ -1,6 +1,7 @@
 from .models import User
-from  django.contrib.auth.backends import ModelBackend
+from django.contrib.auth.backends import ModelBackend
 import re
+
 
 def get_user_by_account(account):
     """判断account是否为手机号， 返回user对象"""
@@ -19,6 +20,7 @@ def get_user_by_account(account):
         return None
     else:
         return user
+
 
 # 继承自 ModelBackend，重写 authenticate函数
 class UsernameMobileAuthBackend(ModelBackend):
@@ -40,7 +42,3 @@ class UsernameMobileAuthBackend(ModelBackend):
         if user and user.check_password(password):
             # 如果user存在，密码正确，则返回user
             return user
-
-
-
-

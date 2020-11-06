@@ -16,8 +16,8 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# AUTHENTICATION_BACKENDS = ['users.utils.']
-
+# 指定自定义的用户认证后端：
+AUTHENTICATION_BACKENDS = ['users.utils.UsernameMobileAuthBackend']
 
 
 # 将apps设置为导包路径
