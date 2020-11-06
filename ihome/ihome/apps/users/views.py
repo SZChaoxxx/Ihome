@@ -7,7 +7,6 @@ from users.models import User
 from homes.models import House, Area
 from django.shortcuts import render
 from django.http import JsonResponse
-# Create your views here.
 from django.views import View
 import json,re
 from qiniu import Auth, put_data, etag
@@ -68,6 +67,7 @@ class RegisterView(View):
             'errmsg':'注册成功'
         })
         return response
+
 
 # 用户登陆
 class LoginView(View):
@@ -303,6 +303,7 @@ class RealName(LoginRequiredJsonMixin,View):
         })
 
 
+# 我的房源
 class MyHousesView(LoginRequiredJsonMixin,View):
     """
     返回我发布的房源列表

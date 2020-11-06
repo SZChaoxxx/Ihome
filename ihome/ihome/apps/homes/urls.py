@@ -20,6 +20,7 @@ urlpatterns = [
     # 区域数据
     path('areas', views.AreaView.as_view()),
     path('houses/<int:house_id>/images', views.UploadHouseImage.as_view()),
+    path('houses/<int:house_id>', views.HouseDetailView.as_view()),
     path('houses', views.HouseHandleView.as_view()),
     path('houses/index', views.HomePageRecommendView.as_view()),
 

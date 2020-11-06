@@ -7,7 +7,7 @@ from django.http import HttpResponse, JsonResponse
 from django.conf import settings
 import json, re
 from random import sample
-from .models import House, Area, Facility
+from .models import House, Area, Facility, HouseImage
 from users.models import User
 from qiniu import Auth, put_data, etag
 from datetime import datetime
@@ -314,7 +314,10 @@ class UploadHouseImage(View):
         # 房屋图片传入数据库
         try:
             house = House.objects.get(id=house_id)
-            house.index_image_url = ret['key']
+            if house.index_image_url is None or house.facility.all() == "":
+                house.index_image_url = ret['key']
+            houseImage = HouseImage(house_id=house.id, url=ret['key'])
+            houseImage.save()
             house.save()
         except Exception as e:
             return JsonResponse({
@@ -353,4 +356,56 @@ class HomePageRecommendView(View):
             "data": house_list,
             "errmsg": "ok",
             "errno": "0"
+        })
+
+
+class HouseDetailView(View):
+    def get(self, request, house_id):
+        # 1.获取参数
+        user_id = -1
+        user = request.user
+        # 判断用户是否登陆
+        if user:
+           user_id = user.id
+        try:
+            house = House.objects.get(id=house_id)
+        except DatabaseError:
+            return JsonResponse({
+                "errno": "4001",
+                "errmsg": "数据库查询失败"
+            })
+        # 整理数据
+        facility_list = []
+        for item in house.facility.all():
+            facility_list.append(item.id)
+        house_image_list = []
+        for item in HouseImage.objects.filter(house_id=house_id):
+            house_image_list.append("http://qj9kppiiy.hn-bkt.clouddn.com/%s" % item.url)
+        data = {
+                "acreage": house.acreage,
+                "address": house.address,
+                "beds": house.beds,
+                "capacity": house.capacity,
+                "comments": {},  # TODO
+                "deposit": house.deposit,
+                "facilities": facility_list,
+                "hid": house.id,
+                "img_urls": house_image_list,
+                "max_days": house.max_days,
+                "min_days": house.min_days,
+                "price": house.price,
+                "room_count": house.room_count,
+                "title": house.title,
+                "unit": house.unit,
+                "user_avatar": "http://qj9kppiiy.hn-bkt.clouddn.com/%s" % User.objects.get(id=house.user_id).avatar,
+                "user_name": User.objects.get(id=house.user_id).username,
+            }
+
+        return JsonResponse({
+            "data": {
+                "house": data,
+                "user_id": user_id,
+                },
+            "errno": "0",
+            "errmsg": "ok"
         })
