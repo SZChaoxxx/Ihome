@@ -1,12 +1,16 @@
 from django.views import View
 from django.db import DatabaseError
 from django.core.cache import cache
+from django.db.models import Q
+from django.core.paginator import Paginator, EmptyPage
 from django.http import HttpResponse, JsonResponse
 from django.conf import settings
 import json, re
 from random import sample
 from .models import House, Area, Facility
+from users.models import User
 from qiniu import Auth, put_data, etag
+from datetime import datetime
 
 
 class AreaView(View):
@@ -54,9 +58,9 @@ class AreaView(View):
         })
 
 
-class PublishHouse(View):
+class HouseHandleView(View):
     """
-    发布新房源
+    房屋处理视图
     """
 
     def post(self, request):
@@ -187,7 +191,7 @@ class PublishHouse(View):
             # 房屋对象新建完成之后，去新建关联的设备（多）
             house.facility.set(facility)
 
-        except Exception as e:
+        except DatabaseError as e:
             return JsonResponse({
                 "errno": "4500",
                 "errmsg": "内部错误"
@@ -198,6 +202,97 @@ class PublishHouse(View):
             "data": {
                 "house_id": house.id
             }
+        })
+
+    def get(self, request):
+        """
+        搜索
+        """
+        # 1.获取参数
+        aid = request.GET.get('aid')  # 区域id
+        sd = request.GET.get('sd')  # 开始日期
+        ed = request.GET.get('ed')  # 结束时间
+        sk = request.GET.get('sk')  # 排序方式
+        # booking 入住最多， new： 最新上线，price-inc：价格低到高， price-des：价格高到低
+        p = request.GET.get('p')  # 页数，不传为1
+        # 2.校验参数 (不需要)
+        # 3.业务逻辑处理
+        try:
+            data = House.objects.all()
+        except DatabaseError:
+            return JsonResponse({
+                "errno": "4001",
+                "errmsg": "数据库查询错误"
+            })
+
+        # 地区数据过滤
+        if aid != "" or (aid is not None):
+            data = data.filter(area_id=aid)
+
+        # 入住时间过滤
+        if (sd != "" or (sd is not None)) and (ed != "" or (ed is not None)):
+            FMT = '%Y-%M-%d'
+            tdelta = (datetime.strptime(ed, FMT) - datetime.strptime(sd, FMT)).days
+            data = data.filter(min_days__lte=tdelta)
+            data = data.filter(Q(max_days__gte=tdelta)|Q(max_days=0))
+
+        # 根据sk排序
+        if sk == "booking":
+            data = data.order_by('order_count')
+        elif sk == "new":
+            data = data.order_by("-create_time")
+        elif sk == "price-inc":
+            data = data.order_by("price")
+        elif sk == "price-des":
+            data = data.order_by("-price")
+
+        # 根据页数过滤显示内容
+        # 参数校验
+        try:
+            p = int(p)
+        except TypeError:
+            return JsonResponse({
+                "errno": "4004",
+                "errmsg": "页数数据格式错误"
+            })
+
+        paginator = Paginator(data, settings.MAX_PAGE)
+        # 获取每页数据
+        try:
+            page_data = paginator.page(p)
+        except EmptyPage:
+            # 如果page_num不正确，默认返回400
+            return JsonResponse({
+                "errno": "4004",
+                "errmsg": "超出最大页数限制"
+            })
+
+        # 获取列表页总页数
+        total_page = paginator.num_pages
+        # 定义列表
+        data_list = []
+        # 整理格式
+        for datum in page_data:
+            data_list.append({
+                "address": datum.address,
+                "area_name": Area.objects.get(id=datum.area_id).name,
+                "ctime": datum.create_time,
+                "house_id": datum.id,
+                "img_url": "http://qj9kppiiy.hn-bkt.clouddn.com/%s" % datum.index_image_url,
+                "order_count": datum.order_count,
+                "price": datum.price,
+                "room_count": datum.room_count,
+                "title": datum.title,
+                "user_avatar": "http://qj9kppiiy.hn-bkt.clouddn.com/%s" % User.objects.get(id=datum.user_id).avatar,
+            })
+
+        return JsonResponse({
+            "data": {
+                "houses": data_list,
+                "total_page": total_page,
+            },
+            "errno": "0",
+            "errmsg": "请求成功"
         })
 
 
@@ -235,7 +330,8 @@ class UploadHouseImage(View):
             "errmsg": "图片上传成功"
         })
 
-class HomePageRecommentView(View):
+
+class HomePageRecommendView(View):
     def get(self, request):
         try:
             house_querySet = House.objects.all()

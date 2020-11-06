@@ -48,9 +48,11 @@ class RegisterView(View):
             })
         # 3、业务数据处理 —— 新建User模型类对象保存数据库,注册的核心逻辑 - 保存到数据库(mobile,phonecode,password)
         try:
+            avatar = 'FhQqgJcMQX4F0aE4XNodk3IAOPQZ'  # 用户未上传头像前自动设置默认头像
             user = User.objects.create_user(username=mobile,
                                             mobile=mobile,
-                                            password=password)
+                                            password=password,
+                                            avatar=avatar)
         except Exception as e:
             print(e)
             return JsonResponse({

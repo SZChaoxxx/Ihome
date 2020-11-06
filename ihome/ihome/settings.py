@@ -58,9 +58,12 @@ INSTALLED_APPS = [
     'users',
     'verifications',
     'corsheaders',  # 安装cors应用，解决跨域问题
-
-
 ]
+
+# 自定义每页最大显示条数
+MAX_PAGE = 5
+
+
 
 MIDDLEWARE = [
     # 添加 django-cors-headers 使其可以进行 cors 跨域

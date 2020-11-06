@@ -8,6 +8,7 @@ from celery_tasks.sms.tasks import ccp_send_sms_code  # 使用celery异步发送
 import json, random, logging
 logger = logging.getLogger('django')
 
+
 class ImageCodeView(View):
     """
     图形验证处理视图
