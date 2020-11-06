@@ -6,11 +6,12 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from homes.models import House
 from .models import Order
+from ihome.utils.views import LoginRequiredJsonMixin
 # Create your views here.
+from django.db.models import Q
 
 
-
-class AddorderView(View):
+class AddorderView(LoginRequiredJsonMixin,View):
 
 # 定义POST方法
     # TODO: 带验证
@@ -23,40 +24,48 @@ class AddorderView(View):
 
         # 提取参数
         # 校验参数
-        # 查询房屋表中所有信息
-        house = House.objects.all()
+
+        house = House.objects.get(pk=house_id)
         # 判断下单用户是否为房主
         # 下订单的用户编号　不能等于　房屋主人的用户编号　
-        if user.id == house.user:
+        if user.id == house.user_id:
             return JsonResponse({'errno': '4105', 'errmsg': '用户身份错误'})
         if not all([house_id, start_date, end_date]):
             return JsonResponse({'errno': '4103', 'errmsg': '参数错误'})
 
         # 业务处理
         # 判断用户是否登陆
-        if user.is_authenticated:
+        #
             # 登陆查询５号库
-            conn = get_redis_connection('order_information')
-            redis_orders = conn.hgetall('orders_%s' % user.id)
-            # 判断用户所选房屋是否重复
-            if str(house_id).encode() in redis_orders or str(start_date).encode() in redis_orders:
-                return JsonResponse({'errno': '4003', 'errmsg': '数据已存在'})
+        # conn = get_redis_connection('order_information')
+        # redis_orders = conn.hgetall('orders_%s' % user.id)
+        orders = Order.objects.filter(Q(house_id=house_id)&
+                                      Q(start_date=start_date))
 
-            else:
 
-                # 写入数据库
-                conn.hset('orders_%s' % user.id, house_id, start_date, end_date)
+        # 判断用户所选房屋是否被预定
+        if  orders:
+            return JsonResponse({'errno': '4003', 'errmsg': '数据已存在'})
 
-            return JsonResponse({
-                "data": {
-                    "order_id": 'orders_%s' % user.id
-                },
-                "errno": '0',
-                "errmsg": "下单成功"
-            })
         else:
-            return JsonResponse({"errno": '4101',
-                                 "errmsg": "用户未登录"})
+
+            # 写入数据库
+            order = Order(
+                user_id=user.id,
+                house_id=house_id,
+                begin_date=start_date,
+                end_date=end_date
+            )
+            order.save()
+
+        return JsonResponse({
+            "data": {
+                "order_id": orders.id
+            },
+            "errno": '0',
+            "errmsg": "下单成功"
+            })
+
 
 
     def get(self, request):
@@ -67,41 +76,35 @@ class AddorderView(View):
         if not role:
             return JsonResponse({'errno': '4103', 'errmsg': '参数错误'})
         # 定义一个空字典用
-        oder_dict = {}
+
         # 判断用户是否登陆
-        if user.is_authenticated:
-            # 读取数据库缓存
-            conn = get_redis_connection('order_information')
-            redis_order = conn.hgetall('orders_%s' % user.id)
-            # 便利添加字典
-            for k, v, v1 in redis_order.items():
-                house_id = int(k)
-                start_date = int(v)
-                end_date = int(v1)
-                # 把便利结果存入字典
-                oder_dict[house_id] = {'start_date': start_date, 'end_date': end_date}
-        else:
-            return JsonResponse({"errno": '4101',
-                                 "errmsg": "用户未登录"})
+        # if user.is_authenticated:
+        #     # 读取数据库缓存
+
+        # # 便利添加字典
+
         # 构建响应列表
         orders = []
 
-        ord_ids = oder_dict.keys()
+        # ord_ids = Order.objects.all()
         # 便利并向列表中添加数据
-        for ord_id in ord_ids:
-            ord = Order.objects.get(pk=ord_id)
-            house = House.objects.get(user=ord_id)
+        # for ord_id in ord_ids:
+        ord = Order.objects.all()
+
+
+        for i in ord:
+            house = House.objects.get(pk=i.house_id)
             orders.append({
-                'amount': ord.amount,
-                'comment': ord.comment,
-                'ctime': ord.create_time,
-                'days': ord.days,
-                "end_date": ord.end_date,
-                # TODO: 要换成七牛云
-                "img_url": "http://oyucyko3w.bkt.clouddn.com/FhgvJiGF9Wfjse8ZhAXb_pYObECQ",
-                "order_id": 'orders_%s' % user.id,
-                "start_date": ord.begin_date,
-                "status": ord.status,
+                'amount': i.amount,
+                'comment': i.comment,
+                'ctime': i.create_time,
+                'days': i.days,
+                "end_date": i.end_date,
+
+                "img_url":  "http://qj9kppiiy.hn-bkt.clouddn.com/%s" % house.index_image_url,
+                "order_id": i.id,
+                "start_date": i.begin_date,
+                "status": i.status,
                 "title": house.title
             })
         return JsonResponse({
@@ -110,7 +113,7 @@ class AddorderView(View):
             "errno": '0'
         })
 #todo 带验证
-class OrderStatus(View):
+class OrderStatus(LoginRequiredJsonMixin,View):
     def put(self, request, order_id):
         # 1 提取参数
         data = json.loads(request.body.decode())
@@ -144,7 +147,7 @@ class OrderStatus(View):
             "errmsg": "操作成功"
         })
 #todo 带验证
-class OrderComment(View):
+class OrderComment(LoginRequiredJsonMixin,View):
     def put(self, request, order_id):
         data = json.loads(request.body.decode())
         comment = data.get('comment')
