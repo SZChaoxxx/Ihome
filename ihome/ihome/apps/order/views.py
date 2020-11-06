@@ -104,14 +104,14 @@ class AddorderView(LoginRequiredJsonMixin,View):
                 orders.append({
                     'amount': i.amount,
                     'comment': i.comment,
-                    'ctime': i.create_time,
+                    'ctime': i.create_time.strftime("%Y-%m-%d"),
                     'days': i.days,
                     "end_date": i.end_date,
 
                     "img_url":  "http://qj9kppiiy.hn-bkt.clouddn.com/%s" % house.index_image_url,
                     "order_id": i.id,
                     "start_date": i.begin_date,
-                    "status": i.status,
+                    "status": Order.ORDER_STATUS_ENUM.get(i.status),
                     "title": house.title
                 })
             return JsonResponse({
@@ -119,6 +119,37 @@ class AddorderView(LoginRequiredJsonMixin,View):
                 "errmsg": 'ok',
                 "errno": '0'
             })
+        if role == 'landlord':
+            orders = []
+
+        # ord_ids = Order.objects.all()
+        # 便利并向列表中添加数据
+        # for ord_id in ord_ids:
+            house = House.objects.filter(user_id=user.id)
+            for k in house:
+                ord=Order.objects.filter(house_id=k.id)
+                for i in ord:
+                    house = House.objects.get(id=i.house_id)
+                    orders.append({
+                        'amount': i.amount,
+                        'comment': i.comment,
+                        'ctime': i.create_time.strftime("%Y-%m-%d"),
+                        'days': i.days,
+                        "end_date": i.end_date,
+
+                        "img_url":  "http://qj9kppiiy.hn-bkt.clouddn.com/%s" % house.index_image_url,
+                        "order_id": i.id,
+                        "start_date": i.begin_date,
+                        "status": Order.ORDER_STATUS_ENUM.get(i.status),
+                        "title": house.title
+                        })
+            return JsonResponse({
+                "data":{ "orders": orders},
+                "errmsg": 'ok',
+                "errno": '0'
+            })
+
+
 #todo 带验证
 class OrderStatus(LoginRequiredJsonMixin,View):
     def put(self, request, order_id):
@@ -135,7 +166,7 @@ class OrderStatus(LoginRequiredJsonMixin,View):
         order = Order.objects.get(pk=order_id)
         if action == "accept":
             try:
-                order.status = 1  # 状态为１(待支付)　表示房东已经接单
+                order.status = 3  # 状态为１(待支付)　表示房东已经接单
                 order.save()
             except Exception as e:
                 return JsonResponse({"errno": "4001", "errmsg": "数据库写入错误"})
